@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+	<title>Document</title>
+</head>
+
+<body ng-app="myApp" ng-controller="myCtrl">
+	<h1>{{hello}}</h1>
+	<div>
+		<input type="text" name="" id="email" placeholder="email">
+		<br>
+		<input type="text" name="" id="password" placeholder="password">
+		<br>
+		<button ng-click="login()">login</button>
+	</div>
+</body>
+
+<script>
+	var app = angular.module('myApp', []);
+	app.controller('myCtrl', function ($scope, $http) {
+		$scope.login = function () {
+			$scope.dangnhap();
+		}
+
+		function setCookie(cname, cvalue, exdays) {
+			const d = new Date();
+			d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+			let expires = "expires=" + d.toUTCString();
+			document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+		}
+
+		function getCookie(cname) {
+			let name = cname + "=";
+			let decodedCookie = decodeURIComponent(document.cookie);
+			let ca = decodedCookie.split(';');
+			for (let i = 0; i < ca.length; i++) {
+				let c = ca[i];
+				while (c.charAt(0) == ' ') {
+					c = c.substring(1);
+				}
+				if (c.indexOf(name) == 0) {
+					return c.substring(name.length, c.length);
+				}
+			}
+			return "";
+		}
+
+		$scope.login = function () {
+			let postData = {
+				email: document.getElementById('email').value,
+				password: document.getElementById('password').value
+			}
+			$http({
+				url: 'http://localhost:8080/rest/login',
+				method: "POST",
+				data: postData,
+				headers: { 'Content-Type': 'application/json' }
+			}).then(function (response) {
+				// success
+				console.log(response)
+				alert("Đăng nhập thành công" + response.data.sesionId)
+				setCookie("sessionID", response.data.sesionId, 2);
+
+				if (response.data.role == "admin") {
+					// lưu sessionId vào cookie
+					// quyền admin -> redirect admin
+					location.href = "http://localhost:8080"
+				} else {
+					location.href = "home.html"
+				}
+			},
+				function (response) {
+					// lưu sessionId vào cookie
+					// quyền admin -> redirect user
+					alert("Đăng nhập thất bại")
+					console.log(response)
+				}
+			);
+		}
+	});
+</script>
+
+</html>
